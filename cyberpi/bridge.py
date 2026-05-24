@@ -8,15 +8,8 @@ import chassis
 import sensors
 from linereader import LineReader
 
-# CONFIRM against the CyberPi pin header before flashing. From the Makeblock
-# Arduino library, the CyberPi itself already uses GPIOs 2, 4, 12, 13, 14,
-# 18, 19, 26, 27, 33, 35. The ESP32-WROVER-B's PSRAM occupies 16 and 17, so
-# they MUST NOT be used (this rules out the stock UART2 defaults). 6-11 are
-# flash; 0/1/3/15 are strap or console UART0. The mBot2 shield consumes more
-# GPIOs for its S1-S4 / encoder / DC motor ports but that mapping isn't in
-# any source I can reach. 32 (TX) and 25 (RX) are defensible picks among the
-# remaining regular GPIOs — swap them for whatever your pin-header silkscreen
-# (or a multimeter against the shield connector) actually shows as broken out.
+# CONFIRM against the CyberPi pin header before flashing. See PINOUT.md for
+# the full GPIO map and why these are placeholders, not verified picks.
 UART_ID = 2
 UART_TX_PIN = 32
 UART_RX_PIN = 25

@@ -14,6 +14,7 @@ stock CyberPiOS. Implements the protocol in
 | `chassis.py` | `drive(l, r)` / `stop()` over the `mbot2` module. Clamps. |
 | `sensors.py` | `read_distance_cm()` over `mbuild.ultrasonic2`. Returns `None` on failure. |
 | `test_bridge_smoke.py` | Desktop test harness. No `cyberpi`/`mbot2` deps. |
+| `PINOUT.md` | CyberPi GPIO map; what's safe to use, what's claimed by the LCD/audio/I2C/PSRAM, and the rationale for the current UART pins. |
 
 ## Uploading via mBlock 5 / mBlock-Python Editor
 
@@ -63,4 +64,5 @@ unknown command and prints every line in both directions.
 
 `UART_TX_PIN` / `UART_RX_PIN` / `UART_ID` at the top of `bridge.py` are
 placeholders pending hardware confirmation against the CyberPi pin header.
-Update them there, not anywhere else.
+See [`PINOUT.md`](PINOUT.md) for the full GPIO map and the rationale for the
+current picks. When you confirm or change the pins, update **both** files.
