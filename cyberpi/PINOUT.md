@@ -46,34 +46,38 @@ GPIOs beyond the I2C bus above.
 DAC1 (GPIO 25) is **not** enabled — `i2s_set_dac_mode(I2S_DAC_CHANNEL_RIGHT_EN)`
 in `cyberpi.cpp` only turns on the right channel (DAC2 = GPIO 26).
 
-## Unknown: mBot2 shield mapping
+## Empirical finding: shield ports are behind a secondary MCU
 
-The shield exposes:
+Original assumption was that S1/S2 might be direct ESP32 GPIOs we could
+reclaim for `machine.UART`. **They aren't.** `cyberpi/scan_ports.py` toggled
+each port via `mbot2.write_digital` while sampling every candidate ESP32 GPIO
+(5, 15, 21, 22, 23, 25, 32, 34, 36, 39) with `machine.Pin(N, Pin.IN)`. No GPIO
+followed either S1 or S2. That means the shield carries its own MCU which
+takes commands from the CyberPi (over I2C, going by GPIOs 18/19) and drives
+S1–S4 / motors on its own pins. The ESP32 never sees those lines.
 
-- 2 encoder motor ports (EM1, EM2)
-- 2 DC motor ports
-- 4 servo / digital / analog / PWM ports (S1, S2, S3, S4)
-- 1 mBuild passthrough port
+The bare CyberPi has no general-purpose pin header either — only USB-C, the
+HOME button, and the mBuild port. The original spec's "free UART exposed on
+the CyberPi pin header" was incorrect; there's no such header to expose
+anything on.
 
-…and consumes more ESP32 GPIOs to do it. The Python API (`mbot2.read_digital("S1")`,
-`mbot2.servo_set(angle, 3)`, etc.) hides the pin numbers, and the Makeblock
-support / education pages that used to document them now 302 to the homepage or
-return 403. The PerfecXX repo's `firmware/` directory is binary blobs only.
+## What this rules in and out
 
-**Practical consequence:** if you wire UART pins through the shield's pin
-header, there's a real chance of colliding with whatever the shield uses for
-S1–S4 / motors. The defensible candidates among GPIOs we know aren't claimed by
-the CyberPi itself are **21, 22, 23, 25, 32** (regular GPIOs, not strap pins,
-not PSRAM, not flash, not console UART).
+- **`machine.UART(tx=Pin(N), rx=Pin(M))` on S1/S2** — dead. Pins aren't on the ESP32.
+- **`machine.UART` on the mBuild port** — possible only if we can identify
+  the underlying ESP32 GPIOs (the mBuild bus is described by Makeblock as
+  "serial communication" but the GPIO mapping isn't in any source I can
+  reach). Sharing the bus with the existing ultrasonic would require
+  speaking the mBuild framing, not raw JSON.
+- **USB-C** — the CyberPi's Type-C exposes ESP32 UART0 via the onboard CH340.
+  Reachable from the CoreS3 if it can act as a USB host with a CH340 driver,
+  and if we tolerate CyberPiOS's stray boot/console output on the same line.
+- **Hardware mod** — solder a thin wire to an ESP32 test pad inside the
+  CyberPi case (e.g. GPIO 21/22/23) and run it out. Preserves the original
+  architecture entirely; costs an hour of physical work.
 
 ## Current bridge UART picks
 
-| Constant in `bridge.py` | Value | Note |
-| --- | --- | --- |
-| `UART_ID` | `2` | ESP32 has a free hardware UART2 (UART0 is the USB console). |
-| `UART_TX_PIN` | `32` | Regular GPIO, no special function in CyberPi sources. |
-| `UART_RX_PIN` | `25` | DAC1 — unused by CyberPi audio code. |
-
-These are **not yet confirmed against the mBot2 shield silkscreen.** When you
-verify (or substitute) the actual pins, update `bridge.py` and this table
-together.
+The constants in `bridge.py` (`UART_ID=2`, `UART_TX_PIN=32`, `UART_RX_PIN=25`)
+are now **stale** — they assume the external pin header that doesn't exist.
+They'll be revisited once we pick between mBuild / USB / hardware-mod paths.

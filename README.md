@@ -12,3 +12,11 @@ protocol is the single source of truth — see
 | ------- | ----------- | ------------- |
 | CyberPi | `cyberpi/`  | in progress   |
 | CoreS3  | `cores3/`   | not started   |
+
+## Resources
+
+- <https://www.yuque.com/makeblock-help-center-en/cyberpi>
+- <https://www.yuque.com/makeblock-help-center-en/mcode>
+- <https://mblock.cc/pages/downloads>
+- <https://github.com/Makeblock-official/CyberPi-Library-for-Arduino>
+- <github.com/PerfecXX/mBot2>
